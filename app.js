@@ -3,10 +3,48 @@ var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
+var dotenv = require('dotenv');
+dotenv.config();
+
 
 var indexRouter = require('./modules/routes/router');
 
-var app = express();
+var app = express(),bodyParser = require('body-parser');
+app.use(bodyParser.urlencoded({
+  limit: "50mb",
+  extended: false
+}));
+app.use(bodyParser.json({limit: "50mb"}));
+const expressSwagger = require('express-swagger-generator')(app);
+
+
+//http://localhost:3000/api-docs
+let options = {
+  swaggerDefinition: {
+      info: {
+          description: 'Workforce API Documentation',
+          title: 'Swagger',
+          version: '1.0.0',
+      },
+      host: process.env.SERVER+':'+process.env.SERVER_PORT,
+      basePath: '/',
+      produces: [
+          "application/json"
+      ],
+      schemes: ['http', 'https'],
+      securityDefinitions: {
+          JWT: {
+              type: 'apiKey',
+              in: 'header',
+              name: 'access-token',
+              description: "",
+          }
+      }
+  },
+  basedir: __dirname,
+  files: ['./modules/**/*.js']
+};
+expressSwagger(options)
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
